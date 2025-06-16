@@ -1,0 +1,6 @@
+# SimpleRanks config
+# This file will be automatically populated as ranks and players are added.
+
+default-rank: default
+ranks: {}
+player-ranks: {}

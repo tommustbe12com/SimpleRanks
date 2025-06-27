@@ -21,8 +21,8 @@ public class RankTabCompleter implements TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
 
         if (args.length == 1) {
-            // First argument: subcommands
-            List<String> subs = List.of("create", "delete", "give", "importanttext", "setdefault", "set", "get", "list");
+            // subcommand first arg
+            List<String> subs = List.of("create", "delete", "give", "importanttext", "setdefault", "set", "get", "list", "bracketcolor");
             return subs.stream()
                     .filter(s -> s.toLowerCase().startsWith(args[0].toLowerCase()))
                     .collect(Collectors.toList());
@@ -34,14 +34,13 @@ public class RankTabCompleter implements TabCompleter {
             case "create":
             case "delete":
             case "setdefault":
-                // Second arg: rank name (case-sensitive)
+                // rank name
                 if (args.length == 2) {
                     String partial = args[1];
-                    // For create: no existing ranks suggested (empty list), to avoid confusion
                     if (subCommand.equals("create")) {
                         return Collections.emptyList();
                     } else {
-                        // For delete and setdefault, suggest existing ranks starting with partial
+                        // delete and setdefault, suggest existing ranks starting with partial
                         return manager.getAllRanks().stream()
                                 .filter(rank -> rank.startsWith(partial))
                                 .sorted()
@@ -54,7 +53,7 @@ public class RankTabCompleter implements TabCompleter {
             case "set":
                 // /rank give <player> <rank> or /rank set <player> <rank>
                 if (args.length == 2) {
-                    // Suggest online players matching partial
+                    // suggest online players
                     String partialPlayer = args[1].toLowerCase();
                     return Bukkit.getOnlinePlayers().stream()
                             .map(Player::getName)
@@ -100,8 +99,29 @@ public class RankTabCompleter implements TabCompleter {
                 break;
 
             case "list":
-                // /rank list has no further args
+                // /rank list no args
                 return Collections.emptyList();
+
+            case "bracketcolor":
+                if (args.length == 2) {
+                    String partialRank = args[1].toLowerCase();
+                    return manager.getAllRanks().stream()
+                            .filter(rank -> rank.toLowerCase().startsWith(partialRank))
+                            .sorted()
+                            .collect(Collectors.toList());
+                } else if (args.length == 3) {
+                    String partialColor = args[2].toLowerCase();
+                    List<String> colorNames = List.of(
+                            "black", "dark_blue", "dark_green", "dark_aqua", "dark_red", "dark_purple",
+                            "gold", "gray", "dark_gray", "blue", "green", "aqua",
+                            "red", "light_purple", "yellow", "white"
+                    );
+                    return colorNames.stream()
+                            .filter(name -> name.startsWith(partialColor))
+                            .sorted()
+                            .collect(Collectors.toList());
+                }
+                break;
 
             default:
                 return Collections.emptyList();

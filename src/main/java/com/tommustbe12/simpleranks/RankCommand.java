@@ -187,6 +187,36 @@ public class RankCommand implements CommandExecutor {
                         ChatColor.translateAlternateColorCodes('&', colorCode) + colorInput);
                 break;
 
+            case "deathmessages": {
+                if (!sender.hasPermission("simpleranks.admin")) {
+                    sender.sendMessage("§cYou do not have permission to do this.");
+                    return true;
+                }
+
+                if (args.length != 2) {
+                    sender.sendMessage("§cUsage: /rank deathmessages <on|off>");
+                    return true;
+                }
+
+                boolean newValue;
+
+                if (args[1].equalsIgnoreCase("on")) {
+                    newValue = true;
+                } else if (args[1].equalsIgnoreCase("off")) {
+                    newValue = false;
+                } else {
+                    sender.sendMessage("§cUsage: /rank deathmessages <on|off>");
+                    return true;
+                }
+
+                plugin.getConfig().set("death-messages.include-rank", newValue);
+                plugin.saveConfig();
+
+                sender.sendMessage("§6[SimpleRanks] §eDeath message ranks are now " +
+                        (newValue ? "§aENABLED" : "§cDISABLED"));
+
+                return true;
+            }
 
 
             default:

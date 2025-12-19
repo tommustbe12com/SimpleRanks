@@ -2,7 +2,7 @@ name: SimpleRanks
 main: com.tommustbe12.simpleranks.Simpleranks
 author: TomMustBe12
 website: https://tommustbe12.com
-version: 1.0
+version: 2.2
 api-version: 1.20
 commands:
   rank:

@@ -8,6 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -56,4 +57,30 @@ public class RankListener implements Listener {
             }
         }
     }
+
+    // when player dies, optional include the rank prefix and stuff
+    @EventHandler
+    public void onDeath(PlayerDeathEvent event) {
+        if (!Simpleranks.getInstance().getConfig().getBoolean("death-messages.enabled", true)) {
+            return;
+        }
+
+        Player player = event.getEntity();
+        String deathMessage = event.getDeathMessage();
+
+        if (deathMessage == null) return;
+
+        boolean includeRank = Simpleranks.getInstance().getConfig()
+                .getBoolean("death-messages.include-rank", true);
+
+        if (!includeRank) {
+            return;
+        }
+
+        String prefix = ChatColor.translateAlternateColorCodes('&',
+                manager.getRankPrefix(manager.getRank(player.getUniqueId())));
+
+        event.setDeathMessage(prefix + ChatColor.RESET + " " + deathMessage);
+    }
+
 }

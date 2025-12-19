@@ -22,7 +22,7 @@ public class RankTabCompleter implements TabCompleter {
 
         if (args.length == 1) {
             // subcommand first arg
-            List<String> subs = List.of("create", "delete", "give", "importanttext", "setdefault", "set", "get", "list", "bracketcolor");
+            List<String> subs = List.of("create", "delete", "give", "importanttext", "setdefault", "set", "get", "list", "bracketcolor", "deathmessages");
             return subs.stream()
                     .filter(s -> s.toLowerCase().startsWith(args[0].toLowerCase()))
                     .collect(Collectors.toList());
@@ -122,6 +122,17 @@ public class RankTabCompleter implements TabCompleter {
                             .collect(Collectors.toList());
                 }
                 break;
+
+            case "deathmessages":
+                if (args.length == 2) {
+                    String partial = args[1].toLowerCase();
+                    return List.of("on", "off").stream()
+                            .filter(s -> s.startsWith(partial))
+                            .collect(Collectors.toList());
+                }
+                return Collections.emptyList();
+
+
 
             default:
                 return Collections.emptyList();

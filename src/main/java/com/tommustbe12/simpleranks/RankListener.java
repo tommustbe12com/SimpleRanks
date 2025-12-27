@@ -61,26 +61,31 @@ public class RankListener implements Listener {
     // when player dies, optional include the rank prefix and stuff
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
-        if (!Simpleranks.getInstance().getConfig().getBoolean("death-messages.enabled", true)) {
+        if (!Simpleranks.getInstance().getConfig()
+                .getBoolean("death-messages.enabled", true)) {
+            return;
+        }
+
+        if (Simpleranks.getInstance().getConfig()
+                .getBoolean("death-messages.include-rank", true)) {
+            // ranks ON → let teams handle it
             return;
         }
 
         Player player = event.getEntity();
-        String deathMessage = event.getDeathMessage();
+        String message = event.getDeathMessage();
 
-        if (deathMessage == null) return;
+        if (message == null) return;
 
-        boolean includeRank = Simpleranks.getInstance().getConfig()
-                .getBoolean("death-messages.include-rank", true);
+        // Remove team prefix safely
+        Scoreboard board = Bukkit.getScoreboardManager().getMainScoreboard();
+        Team team = board.getEntryTeam(player.getName());
 
-        if (!includeRank) {
-            return;
+        if (team != null && team.getPrefix() != null && !team.getPrefix().isEmpty()) {
+            String prefix = ChatColor.translateAlternateColorCodes('&', team.getPrefix());
+            event.setDeathMessage(message.replace(prefix, ""));
         }
-
-        String prefix = ChatColor.translateAlternateColorCodes('&',
-                manager.getRankPrefix(manager.getRank(player.getUniqueId())));
-
-        event.setDeathMessage(prefix + ChatColor.RESET + " " + deathMessage);
     }
+
 
 }

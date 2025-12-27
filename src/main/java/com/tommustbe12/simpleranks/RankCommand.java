@@ -212,7 +212,7 @@ public class RankCommand implements CommandExecutor {
                 plugin.getConfig().set("death-messages.include-rank", newValue);
                 plugin.saveConfig();
 
-                sender.sendMessage("§6[SimpleRanks] §eDeath message ranks are now " +
+                sender.sendMessage("§eDeath message ranks are now " +
                         (newValue ? "§aENABLED" : "§cDISABLED"));
 
                 return true;

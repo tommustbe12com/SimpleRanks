@@ -23,6 +23,11 @@ public final class Simpleranks extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new RankListener(rankManager), this);
 
         getLogger().info("SimpleRanks enabled!");
+
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new SimpleRanksExpansion(this, rankManager).register();
+            getLogger().info("Hooked into PlaceholderAPI");
+        }
     }
 
     @Override

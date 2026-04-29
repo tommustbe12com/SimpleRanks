@@ -3,9 +3,10 @@ package com.tommustbe12.simpleranks;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.command.*;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 
 import java.util.Map;
 
@@ -91,7 +92,6 @@ public class RankCommand implements CommandExecutor {
                 sender.sendMessage(ChatColor.GOLD + "Available Ranks:");
                 for (String r : manager.getAllRanks()) {
                     String prefix = manager.getRankPrefix(r);
-                    // color code translation and prefix show correctly
                     sender.sendMessage(ChatColor.GRAY + "- " + ChatColor.translateAlternateColorCodes('&', prefix));
                 }
                 break;
@@ -187,6 +187,97 @@ public class RankCommand implements CommandExecutor {
                         ChatColor.translateAlternateColorCodes('&', colorCode) + colorInput);
                 break;
 
+            case "priority": {
+                if (args.length < 2) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rank priority <rank> <num> OR /rank priority <num>");
+                    return true;
+                }
+
+                String rankName;
+                String priorityStr;
+
+                if (args.length == 2) {
+                    if (!(sender instanceof Player player)) {
+                        sender.sendMessage(ChatColor.RED + "Console usage: /rank priority <rank> <num>");
+                        return true;
+                    }
+                    rankName = manager.getRank(player.getUniqueId());
+                    priorityStr = args[1];
+                } else {
+                    rankName = args[1];
+                    priorityStr = args[2];
+                }
+
+                if (!manager.rankExists(rankName)) {
+                    sender.sendMessage(ChatColor.RED + "That rank does not exist!");
+                    return true;
+                }
+
+                int priority;
+                try {
+                    priority = Integer.parseInt(priorityStr);
+                } catch (NumberFormatException e) {
+                    sender.sendMessage(ChatColor.RED + "Priority must be a number (0 is highest).");
+                    return true;
+                }
+
+                if (priority < 0) {
+                    sender.sendMessage(ChatColor.RED + "Priority must be 0 or greater (0 is highest).");
+                    return true;
+                }
+
+                manager.setRankPriority(rankName, priority);
+                for (Player online : Bukkit.getOnlinePlayers()) {
+                    manager.updateDisplay(online);
+                }
+
+                sender.sendMessage(ChatColor.GREEN + "Set rank priority for " + rankName + " to " + priority + " (0 is highest).");
+                break;
+            }
+
+            case "brackets": {
+                if (args.length < 2) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rank brackets <on|off> OR /rank brackets <rank> <on|off>");
+                    return true;
+                }
+
+                boolean perRank = args.length >= 3;
+                String enabledStr = perRank ? args[2] : args[1];
+
+                boolean enabled;
+                if (enabledStr.equalsIgnoreCase("on") || enabledStr.equalsIgnoreCase("true")) {
+                    enabled = true;
+                } else if (enabledStr.equalsIgnoreCase("off") || enabledStr.equalsIgnoreCase("false")) {
+                    enabled = false;
+                } else {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rank brackets <on|off> OR /rank brackets <rank> <on|off>");
+                    return true;
+                }
+
+                if (!perRank) {
+                    manager.setGlobalBracketsEnabled(enabled);
+                    for (Player online : Bukkit.getOnlinePlayers()) {
+                        manager.updateDisplay(online);
+                    }
+                    sender.sendMessage(ChatColor.GREEN + "Brackets are now globally " + (enabled ? "ON" : "OFF") + ".");
+                    break;
+                }
+
+                String rankName = args[1];
+                if (!manager.rankExists(rankName)) {
+                    sender.sendMessage(ChatColor.RED + "That rank does not exist!");
+                    return true;
+                }
+
+                manager.setBracketsEnabled(rankName, enabled);
+                for (Player online : Bukkit.getOnlinePlayers()) {
+                    manager.updateDisplay(online);
+                }
+
+                sender.sendMessage(ChatColor.GREEN + "Brackets for rank " + rankName + " are now " + (enabled ? "ON" : "OFF") + ".");
+                break;
+            }
+
             case "deathmessages": {
                 if (!sender.hasPermission("simpleranks.admin")) {
                     sender.sendMessage("§cYou do not have permission to do this.");
@@ -218,7 +309,6 @@ public class RankCommand implements CommandExecutor {
                 return true;
             }
 
-
             default:
                 sendHelp(sender);
         }
@@ -235,6 +325,9 @@ public class RankCommand implements CommandExecutor {
         sender.sendMessage(ChatColor.AQUA + "/rank list");
         sender.sendMessage(ChatColor.AQUA + "/rank delete <rank>");
         sender.sendMessage(ChatColor.AQUA + "/rank importanttext <rank> <true|false>");
-        sender.sendMessage(ChatColor.AQUA + "/rank bracketcolor <rank> <&color>");
+        sender.sendMessage(ChatColor.AQUA + "/rank bracketcolor <rank> <color>");
+        sender.sendMessage(ChatColor.AQUA + "/rank priority <rank> <num> (0 is highest priority)");
+        sender.sendMessage(ChatColor.AQUA + "/rank brackets <on|off> (global)");
+        sender.sendMessage(ChatColor.AQUA + "/rank brackets <rank> <on|off> (per rank)");
     }
 }

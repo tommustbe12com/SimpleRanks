@@ -17,16 +17,22 @@ public class RankManager {
     private final @NotNull Scoreboard scoreboard;
 
     private String defaultRank = "default";
+    private boolean globalBracketsEnabled = true;
+    private static final int DEFAULT_PRIORITY = 9999;
 
     public static class RankInfo {
         public final String prefix;
         public final String bracketColor;
         public final boolean importantText;
+        public final int priority;
+        public final boolean bracketsEnabled;
 
-        public RankInfo(String prefix, String bracketColor, boolean importantText) {
+        public RankInfo(String prefix, String bracketColor, boolean importantText, int priority, boolean bracketsEnabled) {
             this.prefix = prefix;
             this.bracketColor = bracketColor;
             this.importantText = importantText;
+            this.priority = priority;
+            this.bracketsEnabled = bracketsEnabled;
         }
     }
 
@@ -40,6 +46,7 @@ public class RankManager {
         FileConfiguration config = plugin.getConfig();
 
         defaultRank = config.getString("default-rank", "default");
+        globalBracketsEnabled = config.getBoolean("brackets.enabled", true);
 
         playerRanks.clear();
         if (config.isConfigurationSection("player-ranks")) {
@@ -55,7 +62,9 @@ public class RankManager {
                 String prefix = config.getString("ranks." + rankKey + ".prefix", "");
                 String bracketColor = config.getString("ranks." + rankKey + ".bracketColor", "&7");
                 boolean importantText = config.getBoolean("ranks." + rankKey + ".importantText", false);
-                rankData.put(rankKey, new RankInfo(prefix, bracketColor, importantText));
+                int priority = config.getInt("ranks." + rankKey + ".priority", DEFAULT_PRIORITY);
+                boolean bracketsEnabled = config.getBoolean("ranks." + rankKey + ".brackets", true);
+                rankData.put(rankKey, new RankInfo(prefix, bracketColor, importantText, priority, bracketsEnabled));
             }
         }
     }
@@ -73,6 +82,8 @@ public class RankManager {
         plugin.getConfig().set("ranks." + rank + ".prefix", "&f" + rank);
         plugin.getConfig().set("ranks." + rank + ".bracketColor", "&7");
         plugin.getConfig().set("ranks." + rank + ".importantText", false);
+        plugin.getConfig().set("ranks." + rank + ".priority", DEFAULT_PRIORITY);
+        plugin.getConfig().set("ranks." + rank + ".brackets", true);
         plugin.saveConfig();
         loadRanks();
     }
@@ -99,7 +110,7 @@ public class RankManager {
     }
 
     public RankInfo getRankInfo(String rank) {
-        return rankData.getOrDefault(rank, new RankInfo("&f" + rank, "&7", false));
+        return rankData.getOrDefault(rank, new RankInfo("&f" + rank, "&7", false, DEFAULT_PRIORITY, true));
     }
 
     public RankInfo getRankInfo(UUID uuid) {
@@ -127,26 +138,24 @@ public class RankManager {
     }
 
     public String getRankPrefix(String rank) {
-        if (!rankExists(rank)) {
-            return "&7[&f" + rank + "&7]&r ";
+        RankInfo info = getRankInfo(rank);
+        String prefix = info.prefix == null || info.prefix.isEmpty() ? ("&f" + rank) : info.prefix;
+        if (!globalBracketsEnabled || !info.bracketsEnabled) {
+            return prefix + "&r";
         }
-
-        String prefix = plugin.getConfig().getString("ranks." + rank + ".prefix", "&f" + rank);
-        String bracketColor = plugin.getConfig().getString("ranks." + rank + ".bracketColor", "&7");
-
+        String bracketColor = info.bracketColor == null || info.bracketColor.isEmpty() ? "&7" : info.bracketColor;
         return bracketColor + "[" + prefix + bracketColor + "]&r";
     }
 
     public void updateDisplay(Player player) {
-        String prefix = ChatColor.translateAlternateColorCodes('&', getRankPrefix(getRank(player.getUniqueId())));
+        String rank = getRank(player.getUniqueId());
+        String prefix = ChatColor.translateAlternateColorCodes('&', getRankPrefix(rank));
 
         player.setPlayerListName(prefix + ChatColor.RESET + " " + player.getName());
 
         Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
 
-        String safeRankName = ChatColor.stripColor(prefix).replaceAll("[^a-zA-Z0-9]", "");
-        if (safeRankName.length() > 12) safeRankName = safeRankName.substring(0, 12);
-        String teamName = "sr_" + safeRankName;
+        String teamName = buildTeamName(rank);
 
         Team team = scoreboard.getTeam(teamName);
         if (team == null) {
@@ -173,5 +182,53 @@ public class RankManager {
         for (Player online : Bukkit.getOnlinePlayers()) {
             online.setScoreboard(scoreboard);
         }
+    }
+
+    public int getRankPriority(String rank) {
+        return getRankInfo(rank).priority;
+    }
+
+    public void setRankPriority(String rank, int priority) {
+        plugin.getConfig().set("ranks." + rank + ".priority", priority);
+        plugin.saveConfig();
+        loadRanks();
+    }
+
+    public boolean areBracketsEnabled(String rank) {
+        return getRankInfo(rank).bracketsEnabled;
+    }
+
+    public boolean areGlobalBracketsEnabled() {
+        return globalBracketsEnabled;
+    }
+
+    public void setGlobalBracketsEnabled(boolean enabled) {
+        plugin.getConfig().set("brackets.enabled", enabled);
+        plugin.saveConfig();
+        loadRanks();
+    }
+
+    public void setBracketsEnabled(String rank, boolean enabled) {
+        plugin.getConfig().set("ranks." + rank + ".brackets", enabled);
+        plugin.saveConfig();
+        loadRanks();
+    }
+
+    private String buildTeamName(String rank) {
+        int priority = Math.max(0, getRankPriority(rank));
+        String priorityPart = String.format("%04d", Math.min(priority, 9999));
+
+        String safeRank = rank == null ? "" : rank;
+        safeRank = safeRank.replaceAll("[^a-zA-Z0-9]", "");
+        if (safeRank.isEmpty()) safeRank = "rank";
+
+        // Team name max length is 16. "sr" + 4 digits + "_" => 7 chars, leaving 9.
+        if (safeRank.length() > 9) {
+            String suffix = Integer.toString(Math.abs(safeRank.hashCode()) % 1296, 36); // 0..zz
+            if (suffix.length() == 1) suffix = "0" + suffix;
+            safeRank = safeRank.substring(0, 7) + suffix;
+        }
+
+        return "sr" + priorityPart + "_" + safeRank;
     }
 }

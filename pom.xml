@@ -6,7 +6,7 @@
 
     <groupId>com.tommustbe12</groupId>
     <artifactId>simpleranks</artifactId>
-    <version>2.3</version>
+    <version>3.0</version>
     <packaging>jar</packaging>
 
     <name>simpleranks</name>

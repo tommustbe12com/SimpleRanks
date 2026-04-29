@@ -4,3 +4,13 @@
 default-rank: default
 ranks: {}
 player-ranks: {}
+
+# Rank options (per rank under ranks.<rank>):
+# - prefix: string (supports & color codes)
+# - bracketColor: string (e.g. "&7")
+# - importantText: boolean
+# - priority: int (0 is highest priority in tab list)
+# - brackets: boolean (show [ ] around prefix)
+
+# Global options:
+# - brackets.enabled: boolean (default true)

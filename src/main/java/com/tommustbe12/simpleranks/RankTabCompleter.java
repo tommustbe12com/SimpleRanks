@@ -22,7 +22,7 @@ public class RankTabCompleter implements TabCompleter {
 
         if (args.length == 1) {
             // subcommand first arg
-            List<String> subs = List.of("create", "delete", "give", "importanttext", "setdefault", "set", "get", "list", "bracketcolor", "deathmessages");
+            List<String> subs = List.of("create", "delete", "give", "importanttext", "setdefault", "set", "get", "list", "bracketcolor", "priority", "brackets", "deathmessages");
             return subs.stream()
                     .filter(s -> s.toLowerCase().startsWith(args[0].toLowerCase()))
                     .collect(Collectors.toList());
@@ -126,6 +126,39 @@ public class RankTabCompleter implements TabCompleter {
             case "deathmessages":
                 if (args.length == 2) {
                     String partial = args[1].toLowerCase();
+                    return List.of("on", "off").stream()
+                            .filter(s -> s.startsWith(partial))
+                            .collect(Collectors.toList());
+                }
+                return Collections.emptyList();
+
+            case "priority":
+                if (args.length == 2) {
+                    String partialRank = args[1].toLowerCase();
+                    return manager.getAllRanks().stream()
+                            .filter(rank -> rank.toLowerCase().startsWith(partialRank))
+                            .sorted()
+                            .collect(Collectors.toList());
+                } else if (args.length == 3) {
+                    String partialNum = args[2];
+                    return List.of("0", "1", "2", "5", "10", "50", "100").stream()
+                            .filter(n -> n.startsWith(partialNum))
+                            .collect(Collectors.toList());
+                }
+                return Collections.emptyList();
+
+            case "brackets":
+                if (args.length == 2) {
+                    String partial = args[1].toLowerCase();
+                    List<String> options = new ArrayList<>();
+                    options.addAll(List.of("on", "off"));
+                    options.addAll(manager.getAllRanks());
+                    return options.stream()
+                            .filter(s -> s.toLowerCase().startsWith(partial))
+                            .sorted()
+                            .collect(Collectors.toList());
+                } else if (args.length == 3) {
+                    String partial = args[2].toLowerCase();
                     return List.of("on", "off").stream()
                             .filter(s -> s.startsWith(partial))
                             .collect(Collectors.toList());

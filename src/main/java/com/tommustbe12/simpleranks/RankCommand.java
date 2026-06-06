@@ -13,9 +13,9 @@ import java.util.Map;
 public class RankCommand implements CommandExecutor {
 
     private final RankManager manager;
-    private final Simpleranks plugin;
+    private final SimpleRanks plugin;
 
-    public RankCommand(RankManager manager, Simpleranks plugin) {
+    public RankCommand(RankManager manager, SimpleRanks plugin) {
         this.manager = manager;
         this.plugin = plugin;
     }

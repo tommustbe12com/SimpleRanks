@@ -8,10 +8,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class SimpleRanksExpansion extends PlaceholderExpansion {
 
-    private final Simpleranks plugin;
+    private final SimpleRanks plugin;
     private final RankManager rankManager;
 
-    public SimpleRanksExpansion(Simpleranks plugin, RankManager rankManager) {
+    public SimpleRanksExpansion(SimpleRanks plugin, RankManager rankManager) {
         this.plugin = plugin;
         this.rankManager = rankManager;
     }

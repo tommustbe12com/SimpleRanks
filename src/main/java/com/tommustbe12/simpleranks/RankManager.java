@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class RankManager {
-    private final Simpleranks plugin;
+    private final SimpleRanks plugin;
     private final Map<UUID, String> playerRanks = new HashMap<>();
     private final Map<String, RankInfo> rankData = new LinkedHashMap<>(); // Keep insertion order
     private final @NotNull Scoreboard scoreboard;
@@ -36,7 +36,7 @@ public class RankManager {
         }
     }
 
-    public RankManager(Simpleranks plugin) {
+    public RankManager(SimpleRanks plugin) {
         this.plugin = plugin;
         this.scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
         loadRanks();

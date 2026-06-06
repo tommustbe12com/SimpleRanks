@@ -16,8 +16,10 @@ import org.bukkit.scoreboard.Team;
 public class RankListener implements Listener {
 
     private final RankManager manager;
+    private final SimpleRanks plugin;
 
-    public RankListener(RankManager manager) {
+    public RankListener(SimpleRanks plugin, RankManager manager) {
+        this.plugin = plugin;
         this.manager = manager;
     }
 
@@ -42,7 +44,7 @@ public class RankListener implements Listener {
                     manager.updateDisplay(player);
                 }
             }
-        }.runTaskLater(Bukkit.getPluginManager().getPlugin("Simpleranks"), 2L);
+        }.runTaskLater(plugin, 2L);
     }
 
     @EventHandler
@@ -61,12 +63,12 @@ public class RankListener implements Listener {
     // when player dies, optional include the rank prefix and stuff
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
-        if (!Simpleranks.getInstance().getConfig()
+        if (!SimpleRanks.getInstance().getConfig()
                 .getBoolean("death-messages.enabled", true)) {
             return;
         }
 
-        if (Simpleranks.getInstance().getConfig()
+        if (SimpleRanks.getInstance().getConfig()
                 .getBoolean("death-messages.include-rank", true)) {
             // ranks ON → let teams handle it
             return;

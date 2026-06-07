@@ -28,6 +28,19 @@ public class RankCommand implements CommandExecutor {
         }
 
         switch (args[0].toLowerCase()) {
+            case "remove":
+                if (args.length < 2) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rank remove <player>");
+                    return true;
+                }
+                OfflinePlayer removeTarget = Bukkit.getOfflinePlayer(args[1]);
+                manager.setRank(removeTarget.getUniqueId(), "");
+                sender.sendMessage(ChatColor.GREEN + "Removed rank from " + removeTarget.getName() + ".");
+                if (removeTarget.isOnline()) {
+                    manager.updateDisplay((Player) removeTarget);
+                }
+                break;
+
             case "create":
                 if (args.length < 2) {
                     sender.sendMessage(ChatColor.RED + "Usage: /rank create <rank>");
@@ -56,6 +69,14 @@ public class RankCommand implements CommandExecutor {
                     return true;
                 }
                 OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
+                if (args[2].equalsIgnoreCase("none")) {
+                    manager.setRank(target.getUniqueId(), "");
+                    sender.sendMessage(ChatColor.GREEN + "Removed rank from " + target.getName() + ".");
+                    if (target.isOnline()) {
+                        manager.updateDisplay((Player) target);
+                    }
+                    break;
+                }
                 if (!manager.rankExists(args[2])) {
                     sender.sendMessage(ChatColor.RED + "That rank does not exist!");
                     return true;
@@ -280,12 +301,12 @@ public class RankCommand implements CommandExecutor {
 
             case "deathmessages": {
                 if (!sender.hasPermission("simpleranks.admin")) {
-                    sender.sendMessage("§cYou do not have permission to do this.");
+                    sender.sendMessage(ChatColor.RED + "You do not have permission to do this.");
                     return true;
                 }
 
                 if (args.length != 2) {
-                    sender.sendMessage("§cUsage: /rank deathmessages <on|off>");
+                    sender.sendMessage(ChatColor.RED + "Usage: /rank deathmessages <on|off>");
                     return true;
                 }
 
@@ -296,15 +317,15 @@ public class RankCommand implements CommandExecutor {
                 } else if (args[1].equalsIgnoreCase("off")) {
                     newValue = false;
                 } else {
-                    sender.sendMessage("§cUsage: /rank deathmessages <on|off>");
+                    sender.sendMessage(ChatColor.RED + "Usage: /rank deathmessages <on|off>");
                     return true;
                 }
 
                 plugin.getConfig().set("death-messages.include-rank", newValue);
                 plugin.saveConfig();
 
-                sender.sendMessage("§eDeath message ranks are now " +
-                        (newValue ? "§aENABLED" : "§cDISABLED"));
+                sender.sendMessage(ChatColor.YELLOW + "Death message ranks are now " +
+                        (newValue ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED"));
 
                 return true;
             }
@@ -319,6 +340,7 @@ public class RankCommand implements CommandExecutor {
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(ChatColor.YELLOW + "SimpleRanks Commands:");
         sender.sendMessage(ChatColor.AQUA + "/rank create <rank>");
+        sender.sendMessage(ChatColor.AQUA + "/rank remove <player>");
         sender.sendMessage(ChatColor.AQUA + "/rank setdefault <rank>");
         sender.sendMessage(ChatColor.AQUA + "/rank set <player> <rank>");
         sender.sendMessage(ChatColor.AQUA + "/rank get <player>");

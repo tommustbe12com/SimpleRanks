@@ -26,13 +26,22 @@ public class RankListener implements Listener {
     @EventHandler
     public void onChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
-        RankManager.RankInfo info = manager.getRankInfo(player.getUniqueId());
+        String rank = manager.getRank(player.getUniqueId());
+        if (rank == null || rank.isBlank()) {
+            event.setFormat("%1$s: %2$s");
+            return;
+        }
 
-        String prefix = ChatColor.translateAlternateColorCodes('&', manager.getRankPrefix(manager.getRank(player.getUniqueId())));
+        RankManager.RankInfo info = manager.getRankInfo(rank);
+
+        String prefix = ChatColor.translateAlternateColorCodes(
+                '&',
+                manager.getRankPrefix(rank)
+        );
         String messageColor = info.importantText ? ChatColor.WHITE.toString() : ChatColor.GRAY.toString();
 
-        // reset colors after prefix, no leaking colors
-        event.setFormat(prefix + ChatColor.RESET + " " + player.getName() + ": " + messageColor + event.getMessage());
+        // Bukkit chat format must keep both placeholders or the event throws.
+        event.setFormat(prefix + ChatColor.RESET + " %1$s: " + messageColor + "%2$s");
     }
 
     @EventHandler
@@ -52,9 +61,9 @@ public class RankListener implements Listener {
         Player player = event.getPlayer();
         Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
 
-        // cleanup
+        // cleanup only teams owned by this plugin
         for (Team team : scoreboard.getTeams()) {
-            if (team.hasEntry(player.getName())) {
+            if (team.getName().startsWith("sr") && team.hasEntry(player.getName())) {
                 team.removeEntry(player.getName());
             }
         }
@@ -70,7 +79,7 @@ public class RankListener implements Listener {
 
         if (SimpleRanks.getInstance().getConfig()
                 .getBoolean("death-messages.include-rank", true)) {
-            // ranks ON → let teams handle it
+            // ranks on: let teams handle it
             return;
         }
 

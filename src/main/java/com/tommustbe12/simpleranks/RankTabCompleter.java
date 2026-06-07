@@ -22,7 +22,7 @@ public class RankTabCompleter implements TabCompleter {
 
         if (args.length == 1) {
             // subcommand first arg
-            List<String> subs = List.of("create", "delete", "give", "importanttext", "setdefault", "set", "get", "list", "bracketcolor", "priority", "brackets", "deathmessages");
+            List<String> subs = List.of("create", "delete", "give", "importanttext", "setdefault", "set", "get", "list", "remove", "bracketcolor", "priority", "brackets", "deathmessages");
             return subs.stream()
                     .filter(s -> s.toLowerCase().startsWith(args[0].toLowerCase()))
                     .collect(Collectors.toList());
@@ -63,8 +63,21 @@ public class RankTabCompleter implements TabCompleter {
                 } else if (args.length == 3) {
                     // Suggest ranks starting with partial
                     String partialRank = args[2];
-                    return manager.getAllRanks().stream()
+                    List<String> suggestions = new ArrayList<>(manager.getAllRanks());
+                    suggestions.add("none");
+                    return suggestions.stream()
                             .filter(rank -> rank.startsWith(partialRank))
+                            .sorted()
+                            .collect(Collectors.toList());
+                }
+                break;
+
+            case "remove":
+                if (args.length == 2) {
+                    String partialPlayer = args[1].toLowerCase();
+                    return Bukkit.getOnlinePlayers().stream()
+                            .map(Player::getName)
+                            .filter(name -> name.toLowerCase().startsWith(partialPlayer))
                             .sorted()
                             .collect(Collectors.toList());
                 }

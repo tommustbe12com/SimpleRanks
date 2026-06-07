@@ -101,12 +101,16 @@ public class RankManager {
     }
 
     public void setRank(UUID uuid, String rank) {
-        playerRanks.put(uuid, rank);
+        playerRanks.put(uuid, rank == null ? "" : rank);
         saveRanks();
     }
 
     public String getRank(UUID uuid) {
         return playerRanks.getOrDefault(uuid, defaultRank);
+    }
+
+    public boolean hasAssignedRank(UUID uuid) {
+        return playerRanks.containsKey(uuid) && !playerRanks.get(uuid).isBlank();
     }
 
     public RankInfo getRankInfo(String rank) {
@@ -138,6 +142,9 @@ public class RankManager {
     }
 
     public String getRankPrefix(String rank) {
+        if (rank == null || rank.isBlank()) {
+            return "";
+        }
         RankInfo info = getRankInfo(rank);
         String prefix = info.prefix == null || info.prefix.isEmpty() ? ("&f" + rank) : info.prefix;
         if (!globalBracketsEnabled || !info.bracketsEnabled) {
@@ -149,6 +156,13 @@ public class RankManager {
 
     public void updateDisplay(Player player) {
         String rank = getRank(player.getUniqueId());
+        if (rank == null || rank.isBlank()) {
+            player.setPlayerListName(player.getName());
+            removePlayerFromRankTeams(player);
+            player.setScoreboard(scoreboard);
+            return;
+        }
+
         String prefix = ChatColor.translateAlternateColorCodes('&', getRankPrefix(rank));
 
         player.setPlayerListName(prefix + ChatColor.RESET + " " + player.getName());
@@ -181,6 +195,14 @@ public class RankManager {
         // scoreboard applies to all players
         for (Player online : Bukkit.getOnlinePlayers()) {
             online.setScoreboard(scoreboard);
+        }
+    }
+
+    private void removePlayerFromRankTeams(Player player) {
+        for (Team team : scoreboard.getTeams()) {
+            if (team.hasEntry(player.getName())) {
+                team.removeEntry(player.getName());
+            }
         }
     }
 
